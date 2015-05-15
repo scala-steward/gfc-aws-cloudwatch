@@ -129,9 +129,7 @@ object CloudWatchMetricsClient {
 }
 
 
-/** Default implementation of CloudWatchMetricsClient, trait is for dependency injection.
-  * TODO: move all of this to shared lib somewhere if it's generally useful.
-  */
+/** Default implementation of CloudWatchMetricsClient, trait is for dependency injection. */
 private[cloudwatch]
 object CloudWatchMetricsClientImpl {
 
