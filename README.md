@@ -6,7 +6,39 @@ A thin Scala wrapper around AWS CloudWatch Java client.
 
 Add dependency to build.sbt:
 ```scala
-libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "0.2.0"
+libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "0.3.0"
+```
+
+Quick metric aggregator example
+(less flexible than CW APIs but can save costs when you have high-frequency events):
+```scala
+
+  val SubServiceMetricBuilder = {
+    CloudWatchMetricDataAggregator.builder.withMetricNamespace("TopLevelNamespace")
+  }
+
+  val Count = SubServiceMetricBuilder.withUnit(StandardUnit.Count)
+
+  val SuccessCount = Count.withMetricName("success")
+
+  def kind = new Dimension().withName("kind")
+
+  val SuccessfulCreate = SuccessCount.addDimensions(kind.withValue("create"))
+
+  val SuccessfulUpdate = SuccessCount.addDimensions(kind.withValue("update"))
+
+  val SuccessfulCreateFoo = SuccessfulCreate.enterMetricNamespace("foo").start()
+  val SuccessfulUpdateFoo = SuccessfulUpdate.enterMetricNamespace("foo").start()
+
+  val SuccessfulCreateBar = SuccessfulCreate.enterMetricNamespace("bar").start()
+  val SuccessfulUpdateBar = SuccessfulUpdate.enterMetricNamespace("bar").start()
+
+..........
+
+  SuccessfulCreateFoo.increment()
+  SuccessfulUpdateFoo.increment()
+  .....
+
 ```
 
 Quick example:
