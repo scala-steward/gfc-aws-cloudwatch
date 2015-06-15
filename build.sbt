@@ -9,7 +9,8 @@ crossScalaVersions := Seq("2.11.6", "2.10.5")
 libraryDependencies ++= Seq(
   "com.gilt" %% "gfc-logging" % "0.0.2",
   "com.gilt" %% "gfc-concurrent" % "0.0.4",
-  "com.amazonaws" % "aws-java-sdk-cloudwatch" % "1.9.33"
+  "com.amazonaws" % "aws-java-sdk-cloudwatch" % "1.9.36",
+  "com.amazonaws" % "aws-java-sdk-logs" % "1.9.36"
 )
 
 releaseCrossBuild := true

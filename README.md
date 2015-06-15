@@ -6,7 +6,7 @@ A thin Scala wrapper around AWS CloudWatch Java client.
 
 Add dependency to build.sbt:
 ```scala
-libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "0.1.1"
+libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "0.2.0"
 ```
 
 Quick example:
@@ -27,6 +27,24 @@ object FooMetricToCloudWatchMetricsData
 CloudWatchMetricsClient("TopLevelNamespace").
   enterNamespace("foo"). // optionally enter more specific namespace
   putMetricData(someFoo)
+
+
+implicit
+object FooMetricToCloudWatchLogsData
+  extends ToCloudWatchLogsData[Foo] {
+
+  override
+  def toLogEvents( t: Foo
+                  ): Seq[InputLogEvent] = {
+    // convert to log events
+  }
+}
+
+// ..........
+
+CloudWatchLogsClient("TopLevelNamespace").
+  enterNamespace("foo"). // optionally enter more specific namespace
+  putLogData("streamName", someFoo)
 
 ```
 
