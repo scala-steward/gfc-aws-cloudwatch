@@ -6,7 +6,7 @@ A thin Scala wrapper around AWS CloudWatch Java client.
 
 Add dependency to build.sbt:
 ```scala
-libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "0.3.0"
+libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "0.4.0"
 ```
 
 Quick metric aggregator example
