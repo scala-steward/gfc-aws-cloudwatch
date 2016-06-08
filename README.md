@@ -1,4 +1,4 @@
-# gfc-aws-cloudwatch
+# gfc-aws-cloudwatch [![Join the chat at https://gitter.im/gilt/gfc](https://badges.gitter.im/gilt/gfc.svg)](https://gitter.im/gilt/gfc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 A thin Scala wrapper around AWS CloudWatch Java client.
 
