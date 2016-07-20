@@ -54,12 +54,24 @@ object CloudWatchMetricDataAggregator {
     *                 of larger batch size in API calls and reducing costs.
     */
   def start( interval: FiniteDuration
-           ): Unit = {
-
+           ): Unit = synchronized {
     CloudWatchMetricDataAggregatorBuilder.start(interval)
-
     startedBackgroundTask = true
   }
+
+
+  /** Stops background tasks. */
+  def stop(): Unit = synchronized {
+    CloudWatchMetricDataAggregatorBuilder.stop()
+    startedBackgroundTask = false
+  }
+
+
+  /** Completely shuts down, can not be restarted. */
+  def shutdown(): Unit = synchronized {
+    CloudWatchMetricDataAggregatorBuilder.shutdown()
+  }
+
 
   @volatile private[this]
   var startedBackgroundTask = false

@@ -1,7 +1,7 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
 
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ScheduledFuture, TimeUnit}
 import java.util.concurrent.atomic.AtomicReference
 
 import com.amazonaws.services.cloudwatch.model._
@@ -109,14 +109,15 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     implicit
     val statsToCloudWatchMetricData = Stats.statsToCloudWatchMetricData(name, metricUnit, metricDimensions)
 
-    val exeFuture = executor.scheduleAtFixedRate(interval.toMillis, interval.toMillis, TimeUnit.MILLISECONDS){ dump() }
+    val exeFuture = executor.scheduleAtFixedRate(interval, interval){ dump() }
     val currentValue = new AtomicReference[Stats](Zero)
 
     info(s"Started CloudWatch metric data aggregation for [${namespace}]-[${name}] with interval ${interval}")
 
     override
-    def stop(): Unit = {
+    def stop(): Unit = synchronized {
       exeFuture.cancel(false)
+      dump()
     }
 
     override
@@ -154,7 +155,6 @@ object CloudWatchMetricDataAggregatorBuilder
   private[this]
   val CWPutMetricDataBatchLimit = 20 // http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_limits.html
 
-
   private
   val executor = {
     import java.util.concurrent._
@@ -167,26 +167,65 @@ object CloudWatchMetricDataAggregatorBuilder
   }.asScala
 
 
+  @volatile
+  private[this]
+  var runningFuture = Option.empty[ScheduledFuture[_]]
+
+
   def start( interval: FiniteDuration
-           ): Unit = {
+           ): Unit = synchronized {
     info(s"Started CW metrics aggregator background task with an interval [${interval}]")
 
     // Periodically dump all enqueued stats (they preserve original timestamps because we use withTimestamp())
     // to CW, in as few calls as possible.
-    executor.scheduleAtFixedRate(interval.toMillis, interval.toMillis, TimeUnit.MILLISECONDS) {
-      try {
-        val metricNameToData: Map[String, Seq[NamespacedMetricDatum]] = metricsDataQueue.drain().toSeq.groupBy(_._1)
+    runningFuture = Option {
+      executor.scheduleAtFixedRate(interval, interval) { publish() }
+    }
+  }
 
-        metricNameToData.foreach { case (metricNamespace, namespacedMetricData) =>
-          namespacedMetricData.grouped(CWPutMetricDataBatchLimit).foreach { batch => // send full batches if possible
-            // each CW metric batch is bound to a single metric namespace, wrapper is light weight
-            CloudWatchMetricsClient(metricNamespace).putMetricData(batch)
-            info(s"Published ${batch.size} metrics to [${metricNamespace}]")
-          }
-        }
-      } catch {
-        case NonFatal(e) => error(e.getMessage, e)
+
+  def stop(): Option[ScheduledFuture[_]] = synchronized {
+    info("Stopping CW metrics aggregator")
+    publish()
+    val res = runningFuture
+    try {
+      runningFuture.foreach(_.cancel(false))
+    } catch {
+      case e: Throwable =>
+        error(s"Failed to stop cleanly: ${e.getMessage}", e)
+    }
+    runningFuture = Option.empty
+    res
+  }
+
+
+  def shutdown(): Unit = synchronized {
+    info("Shutting down CW metrics aggregator")
+    try {
+      try {
+        stop().foreach(_.get(3L, TimeUnit.SECONDS)) // give it a chance to shut down cleanly
+      } finally {
+        executor.shutdown()
+      }
+    } catch {
+      case e: Throwable =>
+        error(s"Failed to shut down cleanly: ${e.getMessage}", e)
+    }
+  }
+
+
+  private[this]
+  def publish(): Unit = try {
+    val metricNameToData: Map[String, Seq[NamespacedMetricDatum]] = metricsDataQueue.drain().toSeq.groupBy(_._1)
+
+    metricNameToData.foreach { case (metricNamespace, namespacedMetricData) =>
+      namespacedMetricData.grouped(CWPutMetricDataBatchLimit).foreach { batch => // send full batches if possible
+        // each CW metric batch is bound to a single metric namespace, wrapper is light weight
+        CloudWatchMetricsClient(metricNamespace).putMetricData(batch)
+        info(s"Published ${batch.size} metrics to [${metricNamespace}]")
       }
     }
+  } catch {
+    case NonFatal(e) => error(e.getMessage, e)
   }
 }

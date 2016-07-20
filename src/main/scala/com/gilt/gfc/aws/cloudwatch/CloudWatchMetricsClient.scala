@@ -3,7 +3,7 @@ package com.gilt.gfc.aws.cloudwatch
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient
 import com.amazonaws.services.cloudwatch.model.{MetricDatum, PutMetricDataRequest}
 import com.gilt.gfc.concurrent.JavaConverters._
-import com.gilt.gfc.concurrent.SameThreadExecutionContext
+import com.gilt.gfc.concurrent.{ExecutorService, SameThreadExecutionContext}
 import com.gilt.gfc.logging.OpenLoggable
 
 import scala.collection.JavaConverters._
@@ -141,7 +141,7 @@ object CloudWatchMetricsClientImpl {
 
 
   private
-  val executor = {
+  val executor: ExecutorService = {
     import java.util.concurrent._
 
     new ThreadPoolExecutor(
@@ -181,6 +181,8 @@ case class CloudWatchMetricsClientImpl (
       case NonFatal(e) =>
         Logger.error(e.getMessage, e)
     }
+
+    ()
   }
 }
 

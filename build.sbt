@@ -4,13 +4,13 @@ organization := "com.gilt"
 
 scalaVersion := "2.11.7"
 
-crossScalaVersions := Seq("2.11.7", "2.10.5")
+crossScalaVersions := Seq("2.11.8", "2.10.5")
 
-val awsLibVersion = "1.10.27"
+val awsLibVersion = "1.11.18"
 
 libraryDependencies ++= Seq(
-  "com.gilt" %% "gfc-logging" % "0.0.3"
-, "com.gilt" %% "gfc-concurrent" % "0.2.0"
+  "com.gilt" %% "gfc-logging" % "0.0.5"
+, "com.gilt" %% "gfc-concurrent" % "0.3.3"
 , "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsLibVersion
 , "com.amazonaws" % "aws-java-sdk-logs" % awsLibVersion
 , "org.specs2" %% "specs2-scalacheck" % "2.3.12" % Test
