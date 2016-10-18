@@ -8,7 +8,7 @@ The latest version is 1.1.1, which is cross-built against Scala 2.10.x, 2.11.x a
 
 Add dependency to build.sbt:
 ```scala
-libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "1.1.1"
+libraryDependencies += "com.gilt" %% "gfc-aws-cloudwatch" % "1.1.1"
 ```
 
 # Basic usage
