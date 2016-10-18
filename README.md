@@ -2,12 +2,16 @@
 
 A thin Scala wrapper around AWS CloudWatch Java client.
 
-## How to use
+## Getting gfc-aws-cloudwatch
+
+The latest version is 1.1.1, which is cross-built against Scala 2.10.x, 2.11.x and 2.12.0-RC1.
 
 Add dependency to build.sbt:
 ```scala
-libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "1.0.0"
+libraryDependencies += "com.gilt" % "gfc-aws-cloudwatch" % "1.1.1"
 ```
+
+# Basic usage
 
 Quick metric aggregator example
 (less flexible than CW APIs but can save costs when you have high-frequency events):
