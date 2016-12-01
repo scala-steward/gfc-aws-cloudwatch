@@ -8,6 +8,10 @@ crossScalaVersions := Seq(scalaVersion.value, "2.12.0", "2.10.6")
 
 val awsLibVersion = "1.11.18"
 
+scalacOptions += "-target:jvm-1.7"
+
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+
 libraryDependencies ++= Seq(
   "com.gilt" %% "gfc-logging" % "0.0.7"
 , "com.gilt" %% "gfc-concurrent" % "0.3.5"
