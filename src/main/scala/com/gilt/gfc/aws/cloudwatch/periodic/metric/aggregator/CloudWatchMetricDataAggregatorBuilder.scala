@@ -29,9 +29,8 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
 , interval: FiniteDuration = 1 minute
 ) extends Loggable {
 
-  import CloudWatchMetricDataAggregatorBuilder.{executor, metricsDataQueue}
+  import CloudWatchMetricDataAggregatorBuilder._
   import com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator.Stats.{NoData, Zero}
-
 
   /** Name of the aggregated metric. */
   def withMetricName( n: String
@@ -103,11 +102,15 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     // builder objects. E.g. you might want to fill in a few parameters to define
     // a request counter but then set different namespaces/dimensions on top of that before you
     // start.
-    val namespace = metricNamespace.getOrElse(throw new RuntimeException("Please call withMetricNamespace() to give metric a namespace!"))
-    val name = metricName.getOrElse(throw new RuntimeException("Please call withMetricName() to give metric a name!"))
+    val namespace = metricNamespace.getOrElse(throw new RuntimeException("Please call withMetricNamespace() to give metric a namespace!")).limit()
+    val name = metricName.getOrElse(throw new RuntimeException("Please call withMetricName() to give metric a name!")).limit()
+
+    def sanitizeDimensions(dims: Seq[Dimension]): Seq[Dimension] = dims.map { dim =>
+      new Dimension().withName(dim.getName.limit(DimNameMaxStrLen)).withValue(dim.getValue.limit())
+    }
 
     implicit
-    val statsToCloudWatchMetricData = Stats.statsToCloudWatchMetricData(name, metricUnit, metricDimensions)
+    val statsToCloudWatchMetricData = Stats.statsToCloudWatchMetricData(name, metricUnit, metricDimensions.map(sanitizeDimensions))
 
     val exeFuture = executor.scheduleAtFixedRate(interval, interval){ dump() }
     val currentValue = new AtomicReference[Stats](Zero)
@@ -148,6 +151,16 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
 private[metric]
 object CloudWatchMetricDataAggregatorBuilder
   extends Loggable {
+
+  // Dimension names must be 250 characters or less,
+  // everything else (dimension values, metric names and metric namespaces) must be 256 characters or less
+  private val DimNameMaxStrLen = 250
+  private val GenericMaxStrLen = 256
+
+  // Sanitizes string values so they comply with the AWS specifications (valid XML characters of a particular max length)
+  private implicit class StringValidator(val s: String) extends AnyVal {
+    def limit(n: Int = GenericMaxStrLen): String = s.filter(c => c.toString.matches("""[0-9A-Za-z.\-_/#:]""")).take(n)
+  }
 
   private
   val metricsDataQueue = new WorkQueue[Stats]()
