@@ -106,7 +106,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     val name = metricName.getOrElse(throw new RuntimeException("Please call withMetricName() to give metric a name!")).limit()
 
     def sanitizeDimensions(dims: Seq[Dimension]): Seq[Dimension] = dims.map { dim =>
-      new Dimension().withName(dim.getName.limit(DimNameMaxStrLen)).withValue(dim.getValue.limit())
+      new Dimension().withName(dim.getName.limit(n = DimNameMaxStrLen)).withValue(dim.getValue.limit(allowedCharsRx = DimValueAllowedChars))
     }
 
     implicit
@@ -157,9 +157,12 @@ object CloudWatchMetricDataAggregatorBuilder
   private val DimNameMaxStrLen = 250
   private val GenericMaxStrLen = 256
 
+  private val DimValueAllowedChars = """[0-9A-Za-z.\-_/#:*]"""
+  private val GenericAllowedChars  = """[0-9A-Za-z.\-_/#:]"""
+
   // Sanitizes string values so they comply with the AWS specifications (valid XML characters of a particular max length)
   private implicit class StringValidator(val s: String) extends AnyVal {
-    def limit(n: Int = GenericMaxStrLen): String = s.filter(c => c.toString.matches("""[0-9A-Za-z.\-_/#:]""")).take(n)
+    def limit(n: Int = GenericMaxStrLen, allowedCharsRx: String = GenericAllowedChars): String = s.filter(c => c.toString.matches(allowedCharsRx)).take(n)
   }
 
   private
