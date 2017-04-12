@@ -56,7 +56,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
 
     val newNs = this.metricNamespace match {
       case None => ns
-      case Some(thisNs) => s"${thisNs} / ${ns}"
+      case Some(thisNs) => s"${thisNs}/${ns}"
     }
 
     this.copy(metricNamespace = Some(newNs))
