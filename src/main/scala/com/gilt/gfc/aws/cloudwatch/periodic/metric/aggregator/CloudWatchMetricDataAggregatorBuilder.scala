@@ -56,7 +56,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
 
     val newNs = this.metricNamespace match {
       case None => ns
-      case Some(thisNs) => s"${thisNs}/${ns}"
+      case Some(thisNs) => s"${thisNs} / ${ns}"
     }
 
     this.copy(metricNamespace = Some(newNs))
@@ -157,8 +157,8 @@ object CloudWatchMetricDataAggregatorBuilder
   private val DimNameMaxStrLen = 250
   private val GenericMaxStrLen = 256
 
-  private val DimValueAllowedChars = """[0-9A-Za-z.\-_/#:*]"""
-  private val GenericAllowedChars  = """[0-9A-Za-z.\-_/#:]"""
+  private val DimValueAllowedChars = """[0-9A-Za-z\w.\-_/#:*]"""
+  private val GenericAllowedChars  = """[0-9A-Za-z\w.\-_/#:]"""
 
   // Sanitizes string values so they comply with the AWS specifications (valid XML characters of a particular max length)
   private implicit class StringValidator(val s: String) extends AnyVal {
