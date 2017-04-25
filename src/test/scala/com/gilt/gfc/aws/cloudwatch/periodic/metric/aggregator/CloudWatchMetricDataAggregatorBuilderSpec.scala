@@ -13,12 +13,19 @@ class CloudWatchMetricDataAggregatorBuilderSpec
       val manyspaces = CloudWatchMetricDataAggregatorBuilder(metricNamespace = Some("Test"))
         .enterMetricNamespace("many spaces")
 
-      space.metricNamespace shouldNotEqual None
-      space.metricNamespace.get shouldEqual "Test / spaces"
+      space.sanitizedNamespace shouldNotEqual None
+      space.sanitizedNamespace.get shouldEqual "Test / spaces"
 
-      manyspaces.metricNamespace shouldNotEqual None
-      manyspaces.metricNamespace.get shouldEqual "Test / many spaces"
+      manyspaces.sanitizedNamespace shouldNotEqual None
+      manyspaces.sanitizedNamespace.get shouldEqual "Test / many spaces"
     }
+  }
+
+  "not allow new lines" in {
+    val newline = CloudWatchMetricDataAggregatorBuilder(metricNamespace = Some("Test \nnew line"))
+
+    newline.sanitizedNamespace shouldNotEqual None
+    newline.sanitizedNamespace.get shouldEqual "Test new line"
   }
 
 }
