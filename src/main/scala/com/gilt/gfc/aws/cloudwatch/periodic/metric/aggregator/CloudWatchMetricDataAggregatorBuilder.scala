@@ -96,10 +96,10 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
   }
 
   /** namespace used when publishing. Exposed for testing */
-  def sanitizedNamespace: Option[String] = metricNamespace.map(_.limit())
+  private[metric] def sanitizedNamespace: Option[String] = metricNamespace.map(_.limit())
 
   /** name used when publishing. Exposed for testing */
-  def sanitizedName: Option[String] = metricName.map(_.limit())
+  private[metric] def sanitizedName: Option[String] = metricName.map(_.limit())
 
   /** Constructs CloudWatchMetricDataAggregator and starts submitting collected metrics. */
   def start(): CloudWatchMetricDataAggregator = new CloudWatchMetricDataAggregator {
