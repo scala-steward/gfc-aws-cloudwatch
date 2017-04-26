@@ -56,7 +56,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
 
     val newNs = this.metricNamespace match {
       case None => ns
-      case Some(thisNs) => s"${thisNs}/${ns}"
+      case Some(thisNs) => s"${thisNs} / ${ns}"
     }
 
     this.copy(metricNamespace = Some(newNs))
@@ -95,6 +95,12 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     this.copy(metricDimensions = this.metricDimensions :+ ds)
   }
 
+  /** namespace used when publishing. Exposed for testing */
+  private[metric] def sanitizedNamespace: Option[String] = metricNamespace.map(_.limit())
+
+  /** name used when publishing. Exposed for testing */
+  private[metric] def sanitizedName: Option[String] = metricName.map(_.limit())
+
   /** Constructs CloudWatchMetricDataAggregator and starts submitting collected metrics. */
   def start(): CloudWatchMetricDataAggregator = new CloudWatchMetricDataAggregator {
 
@@ -102,8 +108,8 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     // builder objects. E.g. you might want to fill in a few parameters to define
     // a request counter but then set different namespaces/dimensions on top of that before you
     // start.
-    val namespace = metricNamespace.getOrElse(throw new RuntimeException("Please call withMetricNamespace() to give metric a namespace!")).limit()
-    val name = metricName.getOrElse(throw new RuntimeException("Please call withMetricName() to give metric a name!")).limit()
+    val namespace = sanitizedNamespace.getOrElse(throw new RuntimeException("Please call withMetricNamespace() to give metric a namespace!"))
+    val name = sanitizedName.getOrElse(throw new RuntimeException("Please call withMetricName() to give metric a name!"))
 
     def sanitizeDimensions(dims: Seq[Dimension]): Seq[Dimension] = dims.map { dim =>
       new Dimension().withName(dim.getName.limit(n = DimNameMaxStrLen)).withValue(dim.getValue.limit(allowedCharsRx = DimValueAllowedChars))
@@ -157,8 +163,8 @@ object CloudWatchMetricDataAggregatorBuilder
   private val DimNameMaxStrLen = 250
   private val GenericMaxStrLen = 256
 
-  private val DimValueAllowedChars = """[0-9A-Za-z.\-_/#:*]"""
-  private val GenericAllowedChars  = """[0-9A-Za-z.\-_/#:]"""
+  private val DimValueAllowedChars = """[0-9A-Za-z.\-_/#:* ]"""
+  private val GenericAllowedChars  = """[0-9A-Za-z.\-_/#: ]"""
 
   // Sanitizes string values so they comply with the AWS specifications (valid XML characters of a particular max length)
   private implicit class StringValidator(val s: String) extends AnyVal {
