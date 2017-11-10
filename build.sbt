@@ -4,7 +4,7 @@ organization := "com.gilt"
 
 scalaVersion := "2.12.4"
 
-crossScalaVersions := Seq(scalaVersion.value, "2.12.4")
+crossScalaVersions := Seq(scalaVersion.value, "2.11.11")
 
 val awsLibVersion = "1.11.228"
 
