@@ -1,4 +1,4 @@
-# gfc-aws-cloudwatch [![Join the chat at https://gitter.im/gilt/gfc](https://badges.gitter.im/gilt/gfc.svg)](https://gitter.im/gilt/gfc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# gfc-aws-cloudwatch [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gilt/gfc-aws-cloudwatch_2.12/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.gilt/gfc-aws-cloudwatch_2.12) [![Join the chat at https://gitter.im/gilt/gfc](https://badges.gitter.im/gilt/gfc.svg)](https://gitter.im/gilt/gfc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 A thin Scala wrapper around AWS CloudWatch Java client. Part of the [Gilt Foundation Classes](https://github.com/gilt?q=gfc).
 
