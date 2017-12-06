@@ -1,3 +1,5 @@
+import scoverage.ScoverageKeys
+
 name := "gfc-aws-cloudwatch"
 
 organization := "com.gilt"
@@ -11,6 +13,10 @@ val awsLibVersion = "1.11.243"
 scalacOptions += "-target:jvm-1.7"
 
 javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+
+ScoverageKeys.coverageFailOnMinimum := true
+
+ScoverageKeys.coverageMinimum := 11.5
 
 libraryDependencies ++= Seq(
   "com.gilt" %% "gfc-logging" % "0.0.8"
