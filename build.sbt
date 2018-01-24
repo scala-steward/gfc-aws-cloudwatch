@@ -8,7 +8,7 @@ scalaVersion := "2.12.4"
 
 crossScalaVersions := Seq(scalaVersion.value, "2.11.12")
 
-val awsLibVersion = "1.11.265"
+val awsLibVersion = "1.11.269"
 
 scalacOptions += "-target:jvm-1.7"
 
@@ -20,7 +20,8 @@ ScoverageKeys.coverageMinimum := 11.5
 
 libraryDependencies ++= Seq(
   "com.gilt" %% "gfc-logging" % "0.0.8"
-, "com.gilt" %% "gfc-concurrent" % "0.3.7"
+, "com.gilt" %% "gfc-util" % "0.1.7"
+, "com.gilt" %% "gfc-concurrent" % "0.3.8"
 , "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsLibVersion
 , "com.amazonaws" % "aws-java-sdk-logs" % awsLibVersion
 , "org.specs2" %% "specs2-scalacheck" % "4.0.2" % Test
