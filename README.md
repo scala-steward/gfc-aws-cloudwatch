@@ -4,11 +4,11 @@ A thin Scala wrapper around AWS CloudWatch Java client. Part of the [Gilt Founda
 
 ## Getting gfc-aws-cloudwatch
 
-The latest version is 1.1.8, which is cross-built against Scala 2.11.x and 2.12.x
+The latest version is 1.2.0, which is cross-built against Scala 2.11.x and 2.12.x
 
 Add dependency to build.sbt:
 ```scala
-libraryDependencies += "com.gilt" %% "gfc-aws-cloudwatch" % "1.1.8"
+libraryDependencies += "com.gilt" %% "gfc-aws-cloudwatch" % "1.2.0"
 ```
 
 # Basic usage
@@ -16,9 +16,10 @@ libraryDependencies += "com.gilt" %% "gfc-aws-cloudwatch" % "1.1.8"
 Quick metric aggregator example
 (less flexible than CW APIs but can save costs when you have high-frequency events):
 ```scala
+  val cwPublisher = CloudWatchMetricsPublisher.start(1 minute)
 
   val SubServiceMetricBuilder = {
-    CloudWatchMetricDataAggregator.builder.withMetricNamespace("TopLevelNamespace")
+    CloudWatchMetricDataAggregator.builder(cwPublisher).withMetricNamespace("TopLevelNamespace")
   }
 
   val Count = SubServiceMetricBuilder.withUnit(StandardUnit.Count)
