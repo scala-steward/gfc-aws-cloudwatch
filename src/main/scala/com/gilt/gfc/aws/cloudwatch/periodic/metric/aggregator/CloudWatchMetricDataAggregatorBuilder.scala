@@ -1,14 +1,10 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
 
 
-import java.util.concurrent.{ScheduledFuture, TimeUnit}
 import java.util.concurrent.atomic.AtomicReference
 
 import com.amazonaws.services.cloudwatch.model._
-import com.gilt.gfc.aws.cloudwatch.CloudWatchMetricsClient
-import com.gilt.gfc.aws.cloudwatch.periodic.metric.CloudWatchMetricDataAggregator
-import com.gilt.gfc.concurrent.JavaConverters._
-import com.gilt.gfc.concurrent.ThreadFactoryBuilder
+import com.gilt.gfc.aws.cloudwatch.periodic.metric.{CloudWatchMetricDataAggregator, CloudWatchMetricsPublisher}
 import com.gilt.gfc.logging.Loggable
 
 import scala.concurrent.duration.{FiniteDuration, _}
@@ -22,7 +18,8 @@ import scala.util.control.NonFatal
   * more specialized metric aggregators.
   */
 case class CloudWatchMetricDataAggregatorBuilder private[metric] (
-  metricName: Option[String] = None
+  publisherOpt: Option[CloudWatchMetricsPublisher] = None
+, metricName: Option[String] = None
 , metricNamespace: Option[String] = None
 , metricUnit: StandardUnit = StandardUnit.None
 , metricDimensions: Seq[Seq[Dimension]] = Seq.empty
@@ -31,6 +28,13 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
 
   import CloudWatchMetricDataAggregatorBuilder._
   import com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator.Stats.{NoData, Zero}
+
+  /** Name of the aggregated metric. */
+  def withPublisher( p: CloudWatchMetricsPublisher
+                    ): CloudWatchMetricDataAggregatorBuilder = {
+
+    this.copy(publisherOpt = Some(p))
+  }
 
   /** Name of the aggregated metric. */
   def withMetricName( n: String
@@ -110,6 +114,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     // start.
     val namespace = sanitizedNamespace.getOrElse(throw new RuntimeException("Please call withMetricNamespace() to give metric a namespace!"))
     val name = sanitizedName.getOrElse(throw new RuntimeException("Please call withMetricName() to give metric a name!"))
+    val publisher = publisherOpt.getOrElse(throw new RuntimeException("Please call withPublisher() to pass a publisher!"))
 
     def sanitizeDimensions(dims: Seq[Dimension]): Seq[Dimension] = dims.map { dim =>
       new Dimension().withName(dim.getName.limit(n = DimNameMaxStrLen)).withValue(dim.getValue.limit(allowedCharsRx = DimValueAllowedChars))
@@ -118,7 +123,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     implicit
     val statsToCloudWatchMetricData = Stats.statsToCloudWatchMetricData(name, metricUnit, metricDimensions.map(sanitizeDimensions))
 
-    val exeFuture = executor.scheduleAtFixedRate(interval, interval){ dump() }
+    val exeFuture = publisher.executor.scheduleAtFixedRate(interval, interval){ dump() }
     val currentValue = new AtomicReference[Stats](Zero)
 
     info(s"Started CloudWatch metric data aggregation for [${namespace}]-[${name}] with interval ${interval}")
@@ -143,9 +148,9 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
       val v = currentValue.getAndSet(Zero)
 
       if (v == Zero) {
-        metricsDataQueue.enqueue(namespace, NoData) // this sends 1 sample of value 0 to avoid 'insufficient data' state
+        publisher.enqueue(namespace, NoData) // this sends 1 sample of value 0 to avoid 'insufficient data' state
       } else {
-        metricsDataQueue.enqueue(namespace, v)
+        publisher.enqueue(namespace, v)
       }
     } catch {
       case NonFatal(e) => error(e.getMessage, e)
@@ -169,85 +174,5 @@ object CloudWatchMetricDataAggregatorBuilder
   // Sanitizes string values so they comply with the AWS specifications (valid XML characters of a particular max length)
   private implicit class StringValidator(val s: String) extends AnyVal {
     def limit(n: Int = GenericMaxStrLen, allowedCharsRx: String = GenericAllowedChars): String = s.filter(c => c.toString.matches(allowedCharsRx)).take(n)
-  }
-
-  private
-  val metricsDataQueue = new WorkQueue[Stats]()
-
-  private[this]
-  val CWPutMetricDataBatchLimit = 20 // http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_limits.html
-
-  private
-  val executor = {
-    import java.util.concurrent._
-
-    Executors.newScheduledThreadPool(
-      1, // core pool size
-      ThreadFactoryBuilder("CloudWatchMetricDataAggregator", "CloudWatchMetricDataAggregator").build()
-    )
-
-  }.asScala
-
-
-  @volatile
-  private[this]
-  var runningFuture = Option.empty[ScheduledFuture[_]]
-
-
-  def start( interval: FiniteDuration
-           ): Unit = synchronized {
-    info(s"Started CW metrics aggregator background task with an interval [${interval}]")
-
-    // Periodically dump all enqueued stats (they preserve original timestamps because we use withTimestamp())
-    // to CW, in as few calls as possible.
-    runningFuture = Option {
-      executor.scheduleAtFixedRate(interval, interval) { publish() }
-    }
-  }
-
-
-  def stop(): Option[ScheduledFuture[_]] = synchronized {
-    info("Stopping CW metrics aggregator")
-    publish()
-    val res = runningFuture
-    try {
-      runningFuture.foreach(_.cancel(false))
-    } catch {
-      case e: Throwable =>
-        error(s"Failed to stop cleanly: ${e.getMessage}", e)
-    }
-    runningFuture = Option.empty
-    res
-  }
-
-
-  def shutdown(): Unit = synchronized {
-    info("Shutting down CW metrics aggregator")
-    try {
-      try {
-        stop().foreach(_.get(3L, TimeUnit.SECONDS)) // give it a chance to shut down cleanly
-      } finally {
-        executor.shutdown()
-      }
-    } catch {
-      case e: Throwable =>
-        error(s"Failed to shut down cleanly: ${e.getMessage}", e)
-    }
-  }
-
-
-  private[this]
-  def publish(): Unit = try {
-    val metricNameToData: Map[String, Seq[NamespacedMetricDatum]] = metricsDataQueue.drain().toSeq.groupBy(_._1)
-
-    metricNameToData.foreach { case (metricNamespace, namespacedMetricData) =>
-      namespacedMetricData.grouped(CWPutMetricDataBatchLimit).foreach { batch => // send full batches if possible
-        // each CW metric batch is bound to a single metric namespace, wrapper is light weight
-        CloudWatchMetricsClient(metricNamespace).putMetricData(batch)
-        info(s"Published ${batch.size} metrics to [${metricNamespace}]")
-      }
-    }
-  } catch {
-    case NonFatal(e) => error(e.getMessage, e)
   }
 }

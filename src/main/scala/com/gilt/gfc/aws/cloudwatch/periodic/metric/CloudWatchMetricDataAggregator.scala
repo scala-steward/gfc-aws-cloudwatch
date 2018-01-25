@@ -1,5 +1,6 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric
 
+import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
 import com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator.CloudWatchMetricDataAggregatorBuilder
 
 import scala.concurrent.duration.FiniteDuration
@@ -36,43 +37,7 @@ object CloudWatchMetricDataAggregator {
     *
     * @return builder instance that you can start customizing
     */
-  def builder(): CloudWatchMetricDataAggregatorBuilder = {
-
-    // This is needed to make sure we consume what aggregated metrics start to produce, otherwise
-    // system will OOM.
-    assert(startedBackgroundTask, "Please call start() before building any aggregated metrics.")
-
-    CloudWatchMetricDataAggregatorBuilder()
+  def builder(publisher: CloudWatchMetricsPublisher): CloudWatchMetricDataAggregatorBuilder = {
+    CloudWatchMetricDataAggregatorBuilder().withPublisher(publisher)
   }
-
-
-  /** Starts a background task that periodically dumps aggregated metric data to CW.
-    *
-    * @param interval how frequently to dump data to CW. This is intentionally different
-    *                 from the metric aggregation interval. E.g. you may be aggregating
-    *                 metrics for 1min but dump them to CW every 5min, thus taking advantage
-    *                 of larger batch size in API calls and reducing costs.
-    */
-  def start( interval: FiniteDuration
-           ): Unit = synchronized {
-    CloudWatchMetricDataAggregatorBuilder.start(interval)
-    startedBackgroundTask = true
-  }
-
-
-  /** Stops background tasks. */
-  def stop(): Unit = synchronized {
-    CloudWatchMetricDataAggregatorBuilder.stop()
-    startedBackgroundTask = false
-  }
-
-
-  /** Completely shuts down, can not be restarted. */
-  def shutdown(): Unit = synchronized {
-    CloudWatchMetricDataAggregatorBuilder.shutdown()
-  }
-
-
-  @volatile private[this]
-  var startedBackgroundTask = false
 }
