@@ -4,11 +4,11 @@ A thin Scala wrapper around AWS CloudWatch Java client. Part of the [Gilt Founda
 
 ## Getting gfc-aws-cloudwatch
 
-The latest version is 1.1.7, which is cross-built against Scala 2.11.x and 2.12.x
+The latest version is 1.1.8, which is cross-built against Scala 2.11.x and 2.12.x
 
 Add dependency to build.sbt:
 ```scala
-libraryDependencies += "com.gilt" %% "gfc-aws-cloudwatch" % "1.1.7"
+libraryDependencies += "com.gilt" %% "gfc-aws-cloudwatch" % "1.1.8"
 ```
 
 # Basic usage
