@@ -1,6 +1,6 @@
 package com.gilt.gfc.aws.cloudwatch
 
-import com.amazonaws.services.cloudwatch.{AmazonCloudWatchClient, AmazonCloudWatchClientBuilder}
+import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
 import com.amazonaws.services.cloudwatch.model.{MetricDatum, PutMetricDataRequest}
 import com.gilt.gfc.concurrent.JavaConverters._
 import com.gilt.gfc.concurrent.{ExecutorService, SameThreadExecutionContext}
@@ -124,7 +124,8 @@ object CloudWatchMetricsClient {
     * @return CloudWatchMetricsClient instance
     */
   def apply( metricNamespace: String
-           ): CloudWatchMetricsClient = CloudWatchMetricsClientImpl(metricNamespace)
+           , awsCloudWatch: AmazonCloudWatch = AmazonCloudWatchClientBuilder.defaultClient()
+           ): CloudWatchMetricsClient = CloudWatchMetricsClientImpl(metricNamespace, awsCloudWatch)
 
 }
 
@@ -135,10 +136,6 @@ object CloudWatchMetricsClientImpl {
 
   private
   val Logger = new OpenLoggable {}
-
-  private
-  val awsClient = AmazonCloudWatchClientBuilder.defaultClient()
-
 
   private
   val executor: ExecutorService = {
@@ -156,7 +153,8 @@ object CloudWatchMetricsClientImpl {
 
 private[cloudwatch]
 case class CloudWatchMetricsClientImpl (
-  namespace: String
+    namespace: String
+  , awsClient: AmazonCloudWatch
 ) extends CloudWatchMetricsClient {
 
   import CloudWatchMetricsClientImpl._

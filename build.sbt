@@ -20,7 +20,6 @@ ScoverageKeys.coverageMinimum := 11.5
 
 libraryDependencies ++= Seq(
   "com.gilt" %% "gfc-logging" % "0.0.8"
-, "com.gilt" %% "gfc-util" % "0.1.7"
 , "com.gilt" %% "gfc-concurrent" % "0.3.8"
 , "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsLibVersion
 , "com.amazonaws" % "aws-java-sdk-logs" % awsLibVersion

@@ -1,6 +1,6 @@
 package com.gilt.gfc.aws.cloudwatch
 
-import com.amazonaws.services.logs.AWSLogsClient
+import com.amazonaws.services.logs.{AWSLogs, AWSLogsClientBuilder}
 import com.amazonaws.services.logs.model._
 import com.gilt.gfc.concurrent.JavaConverters._
 import com.gilt.gfc.concurrent.SameThreadExecutionContext
@@ -144,7 +144,8 @@ object CloudWatchLogsClient {
     * @return CloudWatchLogsClient instance
     */
   def apply( logNamespace: String
-           ): CloudWatchLogsClient = CloudWatchLogsClientImpl(logNamespace)
+           , awsLogs: AWSLogs = AWSLogsClientBuilder.defaultClient()
+           ): CloudWatchLogsClient = CloudWatchLogsClientImpl(logNamespace, awsLogs)
 
 
   /**
@@ -174,10 +175,6 @@ object CloudWatchLogsClientImpl {
   val Logger = new OpenLoggable {}
 
   private
-  val awsClient = new AWSLogsClient()
-
-
-  private
   val executor = {
     import java.util.concurrent._
 
@@ -193,7 +190,8 @@ object CloudWatchLogsClientImpl {
 
 private[cloudwatch]
 case class CloudWatchLogsClientImpl (
-  namespace: String
+    namespace: String
+  , awsClient: AWSLogs
 ) extends CloudWatchLogsClient {
 
   import CloudWatchLogsClientImpl._
