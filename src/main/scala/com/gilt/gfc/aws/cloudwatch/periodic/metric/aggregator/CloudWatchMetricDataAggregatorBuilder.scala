@@ -24,6 +24,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
 , metricUnit: StandardUnit = StandardUnit.None
 , metricDimensions: Seq[Seq[Dimension]] = Seq.empty
 , interval: FiniteDuration = 1 minute
+, sendZeroSample: Boolean = true
 ) extends Loggable {
 
   import CloudWatchMetricDataAggregatorBuilder._
@@ -79,6 +80,13 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
 
     require(i.toMinutes > 1, "interval must be greater than 1 minute") // doesn't make sense to aggregate for less than that, you don't get a better resolution in the graphs
     this.copy(interval = i)
+  }
+
+  /** Send a sample of value 0 when no metrics have been collected in the interval, to avoid 'insufficient data' state. Default is 'true'. */
+  def withZeroSample( i: Boolean
+                  ): CloudWatchMetricDataAggregatorBuilder = {
+
+    this.copy(sendZeroSample = i)
   }
 
   /** All combinations of dimensions that should be associated with this metric.
@@ -147,10 +155,10 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     def dump(): Unit = try {
       val v = currentValue.getAndSet(Zero)
 
-      if (v == Zero) {
-        publisher.enqueue(namespace, NoData) // this sends 1 sample of value 0 to avoid 'insufficient data' state
-      } else {
+      if (v != Zero) {
         publisher.enqueue(namespace, v)
+      } else if (sendZeroSample) {
+        publisher.enqueue(namespace, NoData) // this sends 1 sample of value 0 to avoid 'insufficient data' state
       }
     } catch {
       case NonFatal(e) => error(e.getMessage, e)
