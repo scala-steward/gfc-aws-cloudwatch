@@ -78,7 +78,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
   def withInterval( i: FiniteDuration
                   ): CloudWatchMetricDataAggregatorBuilder = {
 
-    require(i.toMinutes > 1, "interval must be greater than 1 minute") // doesn't make sense to aggregate for less than that, you don't get a better resolution in the graphs
+    require(i.toSeconds >= 1, "interval must be greater or equal than 1 second") // doesn't make sense to aggregate for less than that, you don't get a better resolution in the graphs
     this.copy(interval = i)
   }
 
