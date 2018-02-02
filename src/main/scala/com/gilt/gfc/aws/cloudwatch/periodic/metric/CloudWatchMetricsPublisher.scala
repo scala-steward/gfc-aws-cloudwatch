@@ -7,10 +7,12 @@ import scala.language.postfixOps
 import scala.util.control.NonFatal
 import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
 import com.gilt.gfc.aws.cloudwatch.{CloudWatchMetricsClient, ToCloudWatchMetricsData}
-import com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator.{NamespacedMetricDatum, Stats, WorkQueue}
+import com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator.Stats
 import com.gilt.gfc.concurrent.JavaConverters._
 import com.gilt.gfc.concurrent.{AsyncScheduledExecutorService, ThreadFactoryBuilder}
 import com.gilt.gfc.logging.Loggable
+
+import scala.util.Try
 
 
 trait CloudWatchMetricsPublisher {
@@ -19,6 +21,9 @@ trait CloudWatchMetricsPublisher {
 
   /** Completely shuts down, can not be restarted. */
   def shutdown(): Unit
+
+  /** Publish all queued-up metrics now */
+  def flush(): Try[Int]
 
   private[metric] def executor: AsyncScheduledExecutorService
 
@@ -71,13 +76,13 @@ case class CloudWatchMetricsPublisherImpl(interval: FiniteDuration
   // Periodically dump all enqueued stats (they preserve original timestamps because we use withTimestamp())
   // to CW, in as few calls as possible.
   private[this]
-  val runningFuture = executor.scheduleAtFixedRate(interval, interval) { publish() }
+  val runningFuture = executor.scheduleAtFixedRate(interval, interval) { flush() }
 
   info(s"Started CW metrics publisher background task with an interval [${interval}]")
 
-  override def stop(): ScheduledFuture[_] = synchronized {
+  override def stop() = synchronized {
     info("Stopping CW metrics publisher")
-    publish()
+    flush()
     val res = runningFuture
     try {
       runningFuture.cancel(false)
@@ -89,7 +94,7 @@ case class CloudWatchMetricsPublisherImpl(interval: FiniteDuration
   }
 
 
-  override def shutdown(): Unit = synchronized {
+  override def shutdown() = synchronized {
     info("Shutting down CW metrics publisher")
     try {
       try {
@@ -103,23 +108,24 @@ case class CloudWatchMetricsPublisherImpl(interval: FiniteDuration
     }
   }
 
-  override private[metric]
-  def enqueue(metricNamespace: String, datum: Stats)(implicit ev: ToCloudWatchMetricsData[Stats]): Unit = {
+  override private[metric]  def enqueue(metricNamespace: String, datum: Stats)(implicit ev: ToCloudWatchMetricsData[Stats]) = {
     metricsDataQueue.enqueue(metricNamespace, datum)
   }
 
-  private[this]
-  def publish(): Unit = try {
+  override def flush() = Try {
     val metricNameToData: Map[String, Seq[NamespacedMetricDatum]] = metricsDataQueue.drain().toSeq.groupBy(_._1)
 
-    metricNameToData.foreach { case (metricNamespace, namespacedMetricData) =>
+    metricNameToData.foldLeft(0) { case (i, (metricNamespace, namespacedMetricData)) =>
       namespacedMetricData.grouped(CWPutMetricDataBatchLimit).foreach { batch => // send full batches if possible
         // each CW metric batch is bound to a single metric namespace, wrapper is light weight
         CloudWatchMetricsClient(metricNamespace, awsCloudWatch).putMetricData(batch)
         info(s"Published ${batch.size} metrics to [${metricNamespace}]")
       }
+      i + namespacedMetricData.size
     }
-  } catch {
-    case NonFatal(e) => error(e.getMessage, e)
+  }.recover {
+    case NonFatal(e) =>
+      error(e.getMessage, e)
+      throw e
   }
 }
