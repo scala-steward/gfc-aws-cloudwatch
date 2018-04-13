@@ -4,11 +4,11 @@ name := "gfc-aws-cloudwatch"
 
 organization := "com.gilt"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.5"
 
 crossScalaVersions := Seq(scalaVersion.value, "2.11.12")
 
-val awsLibVersion = "1.11.269"
+val awsLibVersion = "1.11.313"
 
 scalacOptions += "-target:jvm-1.7"
 
@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
 , "com.gilt" %% "gfc-concurrent" % "0.3.8"
 , "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsLibVersion
 , "com.amazonaws" % "aws-java-sdk-logs" % awsLibVersion
-, "org.specs2" %% "specs2-scalacheck" % "4.0.2" % Test
+, "org.specs2" %% "specs2-scalacheck" % "4.0.3" % Test
 )
 
 releaseCrossBuild := true
