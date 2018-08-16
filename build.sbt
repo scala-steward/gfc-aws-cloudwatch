@@ -16,7 +16,7 @@ javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 ScoverageKeys.coverageFailOnMinimum := true
 
-ScoverageKeys.coverageMinimum := 11.5
+ScoverageKeys.coverageMinimum := 15.0
 
 libraryDependencies ++= Seq(
   "com.gilt" %% "gfc-logging" % "0.0.8"
