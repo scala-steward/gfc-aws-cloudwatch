@@ -1,12 +1,13 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
 
+import com.amazonaws.services.cloudwatch.model.StandardUnit
 import org.specs2.mutable.Specification
 
 class StatsSpec
   extends Specification {
 
   "Stats" should {
-    "addSample value" in {
+    "addSample sanity check" in {
       val s = Stats(sampleCount = 0, sum = 0, min = 0, max = 25.99)
       s.max shouldEqual 25.99
       s.min shouldEqual 0
@@ -20,5 +21,17 @@ class StatsSpec
       s.equals(s2) shouldEqual false
     }
 
+    "statsToCloudWatchMetricData sanity check" in {
+      val s = Stats(sampleCount = 3, sum = 30.22, min = 0, max = 99.99)
+      val converter = Stats.statsToCloudWatchMetricData("myMetricName", StandardUnit.Count, Seq.empty)
+      val result = converter.toMetricData(s)
+      result.size shouldEqual 1
+      val datum = result.head
+      datum.getMetricName shouldEqual ("myMetricName")
+      datum.getUnit shouldEqual ("Count")
+      datum.getStatisticValues.getSampleCount shouldEqual 3
+      datum.getStatisticValues.getSum shouldEqual 30.22
+
+    }
   }
 }
