@@ -36,7 +36,7 @@ class WorkQueueSpec
       it.hasNext should beTrue
 
       it.toList.groupBy(_._1).mapValues(_.map(_._2)).toSeq.map(_.toString).sorted.mkString("[", ", ", "]") shouldEqual(
-        "[(nsBar,List({Dimensions: [],Value: 1.0,Unit: bar1,}, {Dimensions: [],Value: 1.0,Unit: bar2,})), (nsFoo,List({Dimensions: [],Value: 1.0,Unit: foo1,}, {Dimensions: [],Value: 1.0,Unit: foo2,}))]"
+        "[(nsBar,List({Dimensions: [],Value: 1.0,Values: [],Counts: [],Unit: bar1,}, {Dimensions: [],Value: 1.0,Values: [],Counts: [],Unit: bar2,})), (nsFoo,List({Dimensions: [],Value: 1.0,Values: [],Counts: [],Unit: foo1,}, {Dimensions: [],Value: 1.0,Values: [],Counts: [],Unit: foo2,}))]"
       )
     }
   }
