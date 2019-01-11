@@ -1,8 +1,8 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
 
-import java.util.Date
+import java.time.Instant
 
-import com.amazonaws.services.cloudwatch.model._
+import software.amazon.awssdk.services.cloudwatch.model._
 import com.gilt.gfc.aws.cloudwatch.ToCloudWatchMetricsData
 
 import scala.collection.JavaConverters._
@@ -46,21 +46,22 @@ object Stats {
     def toMetricData( s: Stats
                     ): Seq[MetricDatum] = {
 
-      val statsValues = new StatisticSet().
-        withSampleCount(s.sampleCount.toDouble).
-        withSum(s.sum).
-        withMinimum(s.min).
-        withMaximum(s.max)
+      val statsValues = StatisticSet.builder.
+        sampleCount(s.sampleCount.toDouble).
+        sum(s.sum).
+        minimum(s.min).
+        maximum(s.max).
+        build
 
-      def md = new MetricDatum(). // def, not val, we mutate it
-        withMetricName(metricName).
-        withUnit(metricUnit).
-        withStatisticValues(statsValues).
-        withTimestamp(new Date())
+      def mdBuilder = MetricDatum.builder. // def, not val, we mutate it
+        metricName(metricName).
+        unit(metricUnit).
+        statisticValues(statsValues).
+        timestamp(Instant.now)
 
       Seq(
-        Seq(md) // publish dimensionless metric
-        , metricDimensions.map(ds => md.withDimensions(ds.asJava)) // publish same metric with dimensions
+        Seq(mdBuilder.build) // publish dimensionless metric
+        , metricDimensions.map(ds => mdBuilder.dimensions(ds.asJava).build) // publish same metric with dimensions
       ) flatten
     }
   }

@@ -1,8 +1,8 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
 
-import com.amazonaws.services.cloudwatch.model.MetricDatum
 import com.gilt.gfc.aws.cloudwatch.ToCloudWatchMetricsData
 import org.specs2.mutable.Specification
+import software.amazon.awssdk.services.cloudwatch.model.{Dimension, MetricDatum}
 
 
 class WorkQueueSpec
@@ -13,7 +13,7 @@ class WorkQueueSpec
     override
     def toMetricData( a: String
                     ): Seq[MetricDatum] = {
-      Seq( new MetricDatum().withUnit(a).withValue(1.0) )
+      Seq( MetricDatum.builder.unit(a).value(1.0).build )
     }
   }
 
@@ -35,9 +35,12 @@ class WorkQueueSpec
 
       it.hasNext should beTrue
 
-      it.toList.groupBy(_._1).mapValues(_.map(_._2)).toSeq.map(_.toString).sorted.mkString("[", ", ", "]") shouldEqual(
-        "[(nsBar,List({Dimensions: [],Value: 1.0,Values: [],Counts: [],Unit: bar1,}, {Dimensions: [],Value: 1.0,Values: [],Counts: [],Unit: bar2,})), (nsFoo,List({Dimensions: [],Value: 1.0,Values: [],Counts: [],Unit: foo1,}, {Dimensions: [],Value: 1.0,Values: [],Counts: [],Unit: foo2,}))]"
-      )
+      val list = it.toList
+      list.size shouldEqual(4)
+      list(0).shouldEqual(("nsFoo" -> MetricDatum.builder.unit("foo1").value(1.0).build()))
+      list(1).shouldEqual(("nsFoo" -> MetricDatum.builder.unit("foo2").value(1.0).build()))
+      list(2).shouldEqual(("nsBar" -> MetricDatum.builder.unit("bar1").value(1.0).build()))
+      list(3).shouldEqual(("nsBar" -> MetricDatum.builder.unit("bar2").value(1.0).build()))
     }
   }
 }

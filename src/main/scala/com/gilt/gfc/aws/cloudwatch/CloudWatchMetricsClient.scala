@@ -1,13 +1,13 @@
 package com.gilt.gfc.aws.cloudwatch
 
-import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
-import com.amazonaws.services.cloudwatch.model.{MetricDatum, PutMetricDataRequest}
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
+import software.amazon.awssdk.services.cloudwatch.model.{MetricDatum, PutMetricDataRequest}
 import com.gilt.gfc.concurrent.JavaConverters._
 import com.gilt.gfc.concurrent.{ExecutorService, SameThreadExecutionContext}
 import com.gilt.gfc.logging.OpenLoggable
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 
@@ -124,7 +124,7 @@ object CloudWatchMetricsClient {
     * @return CloudWatchMetricsClient instance
     */
   def apply( metricNamespace: String
-           , awsCloudWatch: AmazonCloudWatch = AmazonCloudWatchClientBuilder.defaultClient()
+           , awsCloudWatch: CloudWatchAsyncClient = CloudWatchAsyncClient.create()
            ): CloudWatchMetricsClient = CloudWatchMetricsClientImpl(metricNamespace, awsCloudWatch)
 
 }
@@ -138,6 +138,10 @@ object CloudWatchMetricsClientImpl {
   val Logger = new OpenLoggable {}
 
   private
+  val awsClient = CloudWatchAsyncClient.create
+
+
+  private
   val executor: ExecutorService = {
     import java.util.concurrent._
 
@@ -148,16 +152,20 @@ object CloudWatchMetricsClientImpl {
       new LinkedBlockingQueue[Runnable]()
     )
   }.asScala
+
+  private
+  implicit val executionContext = ExecutionContext.fromExecutor(executor)
 }
 
 
 private[cloudwatch]
 case class CloudWatchMetricsClientImpl (
     namespace: String
-  , awsClient: AmazonCloudWatch
+  , awsClient: CloudWatchAsyncClient
 ) extends CloudWatchMetricsClient {
 
   import CloudWatchMetricsClientImpl._
+  import scala.compat.java8.FutureConverters._
 
   override
   def enterNamespace( n: String
@@ -168,19 +176,16 @@ case class CloudWatchMetricsClientImpl (
   override
   def putMetricData[A]( a: A
                       )( implicit tcwmdEv: ToCloudWatchMetricsData[A]
-                      ): Unit = executor.execute {
-    try {
-      awsClient.putMetricData(
-        new PutMetricDataRequest().
-          withNamespace(namespace).
-          withMetricData(tcwmdEv.toMetricData(a).asJava)
-      )
-    } catch {
+                      ): Unit = {
+    awsClient.putMetricData(
+      PutMetricDataRequest.builder
+        .namespace(namespace)
+        .metricData(tcwmdEv.toMetricData(a).asJava)
+        .build
+    ).toScala.recover {
       case NonFatal(e) =>
         Logger.error(e.getMessage, e)
     }
-
-    ()
   }
 }
 

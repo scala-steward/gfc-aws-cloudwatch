@@ -1,7 +1,7 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
 
-import com.amazonaws.services.cloudwatch.model.StandardUnit
 import org.specs2.mutable.Specification
+import software.amazon.awssdk.services.cloudwatch.model.StandardUnit.COUNT
 
 class StatsSpec
   extends Specification {
@@ -23,14 +23,14 @@ class StatsSpec
 
     "statsToCloudWatchMetricData sanity check" in {
       val s = Stats(sampleCount = 3, sum = 30.22, min = 0, max = 99.99)
-      val converter = Stats.statsToCloudWatchMetricData("myMetricName", StandardUnit.Count, Seq.empty)
+      val converter = Stats.statsToCloudWatchMetricData("myMetricName", COUNT, Seq.empty)
       val result = converter.toMetricData(s)
       result.size shouldEqual 1
       val datum = result.head
-      datum.getMetricName shouldEqual ("myMetricName")
-      datum.getUnit shouldEqual ("Count")
-      datum.getStatisticValues.getSampleCount shouldEqual 3
-      datum.getStatisticValues.getSum shouldEqual 30.22
+      datum.metricName shouldEqual ("myMetricName")
+      datum.unit shouldEqual (COUNT)
+      datum.statisticValues.sampleCount shouldEqual 3
+      datum.statisticValues.sum shouldEqual 30.22
 
     }
   }

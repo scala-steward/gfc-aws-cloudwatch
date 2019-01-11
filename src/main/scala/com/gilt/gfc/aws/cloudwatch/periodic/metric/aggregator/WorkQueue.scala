@@ -2,7 +2,7 @@ package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
-import com.amazonaws.services.cloudwatch.model._
+import software.amazon.awssdk.services.cloudwatch.model._
 import com.gilt.gfc.aws.cloudwatch.ToCloudWatchMetricsData
 
 import scala.language.postfixOps

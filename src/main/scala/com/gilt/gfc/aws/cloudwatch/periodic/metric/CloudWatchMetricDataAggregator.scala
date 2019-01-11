@@ -1,6 +1,5 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric
 
-import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
 import com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator.CloudWatchMetricDataAggregatorBuilder
 
 import scala.concurrent.duration.FiniteDuration

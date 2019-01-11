@@ -3,7 +3,7 @@ package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
 
 import java.util.concurrent.atomic.AtomicReference
 
-import com.amazonaws.services.cloudwatch.model._
+import software.amazon.awssdk.services.cloudwatch.model.{Dimension, StandardUnit}
 import com.gilt.gfc.aws.cloudwatch.periodic.metric.{CloudWatchMetricDataAggregator, CloudWatchMetricsPublisher}
 import com.gilt.gfc.logging.Loggable
 
@@ -21,7 +21,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
   publisherOpt: Option[CloudWatchMetricsPublisher] = None
 , metricName: Option[String] = None
 , metricNamespace: Option[String] = None
-, metricUnit: StandardUnit = StandardUnit.None
+, metricUnit: StandardUnit = StandardUnit.NONE
 , metricDimensions: Seq[Seq[Dimension]] = Seq.empty
 , interval: FiniteDuration = 1 minute
 , sendZeroSample: Boolean = true
@@ -125,7 +125,7 @@ case class CloudWatchMetricDataAggregatorBuilder private[metric] (
     val publisher = publisherOpt.getOrElse(throw new RuntimeException("Please call withPublisher() to pass a publisher!"))
 
     def sanitizeDimensions(dims: Seq[Dimension]): Seq[Dimension] = dims.map { dim =>
-      new Dimension().withName(dim.getName.limit(n = DimNameMaxStrLen)).withValue(dim.getValue.limit(allowedCharsRx = DimValueAllowedChars))
+      Dimension.builder.name(dim.name.limit(n = DimNameMaxStrLen)).value(dim.value.limit(allowedCharsRx = DimValueAllowedChars)).build
     }
 
     implicit

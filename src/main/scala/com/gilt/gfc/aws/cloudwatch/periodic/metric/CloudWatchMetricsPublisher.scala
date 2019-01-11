@@ -5,7 +5,8 @@ import java.util.concurrent.{ScheduledFuture, TimeUnit}
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.language.postfixOps
 import scala.util.control.NonFatal
-import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
+
 import com.gilt.gfc.aws.cloudwatch.{CloudWatchMetricsClient, ToCloudWatchMetricsData}
 import com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator.Stats
 import com.gilt.gfc.concurrent.JavaConverters._
@@ -51,7 +52,7 @@ object CloudWatchMetricsPublisher {
     */
   def start(
       interval: FiniteDuration
-    , awsCloudWatch: AmazonCloudWatch = AmazonCloudWatchClientBuilder.defaultClient()
+    , awsCloudWatch: CloudWatchAsyncClient = CloudWatchAsyncClient.create()
     , executorService: AsyncScheduledExecutorService = defaultExecutor
   ): CloudWatchMetricsPublisher = CloudWatchMetricsPublisherImpl(interval, awsCloudWatch, executorService)
 
@@ -59,7 +60,7 @@ object CloudWatchMetricsPublisher {
 
 private[metric]
 case class CloudWatchMetricsPublisherImpl(interval: FiniteDuration
-                                        , awsCloudWatch: AmazonCloudWatch
+                                        , awsCloudWatch: CloudWatchAsyncClient
                                         , override val executor: AsyncScheduledExecutorService
   ) extends CloudWatchMetricsPublisher with Loggable {
 

@@ -1,6 +1,6 @@
 package com.gilt.gfc.aws.cloudwatch.periodic.metric
 
-import com.amazonaws.services.cloudwatch.model.MetricDatum
+import software.amazon.awssdk.services.cloudwatch.model.MetricDatum
 import com.gilt.gfc.aws.cloudwatch.ToCloudWatchMetricsData
 
 

@@ -1,11 +1,14 @@
 package com.gilt.gfc.aws.cloudwatch
 
-import com.amazonaws.services.logs.{AWSLogs, AWSLogsClientBuilder}
-import com.amazonaws.services.logs.model._
+import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsAsyncClient
+import software.amazon.awssdk.services.cloudwatchlogs.model._
+
+import scala.concurrent.ExecutionContext
+import scala.util.Success
 import com.gilt.gfc.concurrent.JavaConverters._
 import com.gilt.gfc.concurrent.SameThreadExecutionContext
 import com.gilt.gfc.logging.OpenLoggable
-
+import scala.compat.java8.FutureConverters._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -144,7 +147,7 @@ object CloudWatchLogsClient {
     * @return CloudWatchLogsClient instance
     */
   def apply( logNamespace: String
-           , awsLogs: AWSLogs = AWSLogsClientBuilder.defaultClient()
+           , awsLogs: CloudWatchLogsAsyncClient = CloudWatchLogsAsyncClient.create()
            ): CloudWatchLogsClient = CloudWatchLogsClientImpl(logNamespace, awsLogs)
 
 
@@ -175,6 +178,10 @@ object CloudWatchLogsClientImpl {
   val Logger = new OpenLoggable {}
 
   private
+  val awsClient = CloudWatchLogsAsyncClient.create
+
+
+  private
   val executor = {
     import java.util.concurrent._
 
@@ -185,16 +192,19 @@ object CloudWatchLogsClientImpl {
       new LinkedBlockingQueue[Runnable]()
     )
   }.asScala
+
 }
 
 
 private[cloudwatch]
 case class CloudWatchLogsClientImpl (
     namespace: String
-  , awsClient: AWSLogs
+  , awsClient: CloudWatchLogsAsyncClient
 ) extends CloudWatchLogsClient {
 
   import CloudWatchLogsClientImpl._
+
+  private implicit val ec  = ExecutionContext.fromExecutorService(executor)
 
   override
   def enterNamespace( n: String
@@ -207,14 +217,12 @@ case class CloudWatchLogsClientImpl (
                      a: A
                    )( implicit tcwmdEv: ToCloudWatchLogsData[A],
                       nstp: NextSequenceTokenPersistor
-                   ): Unit = executor.execute {
+                   ): Unit = {
     try {
-      putLogEvents(
-        new PutLogEventsRequest()
-          .withLogGroupName(s"/$namespace")
-          .withLogStreamName(logName)
-          .withLogEvents(tcwmdEv.toLogEvents(a).asJavaCollection)
-      )
+      putLogEvents(PutLogEventsRequest.builder
+        .logGroupName(s"/$namespace")
+        .logStreamName(logName)
+        .logEvents(tcwmdEv.toLogEvents(a).asJavaCollection).build)
       return // Here to force the compiler to recognize the return value as Unit instead of PutLogEventResult
     } catch {
       case NonFatal(e) =>
@@ -247,26 +255,29 @@ case class CloudWatchLogsClientImpl (
    * @return        The result of the put request, used mainly for getting the nextSequenceToken
    */
   private
-  def putLogEvents(request: PutLogEventsRequest)(implicit nstp: NextSequenceTokenPersistor): PutLogEventsResult = {
-    val response = try {
-      awsClient.putLogEvents(request.withSequenceToken(nstp.getNextSequenceToken(request.getLogGroupName, request.getLogStreamName)))
+  def putLogEvents(request: PutLogEventsRequest)(implicit nstp: NextSequenceTokenPersistor, ec: ExecutionContext): Future[PutLogEventsResponse] = {
+    val response: Future[PutLogEventsResponse] = (try {
+      awsClient.putLogEvents(request.toBuilder.sequenceToken(nstp.getNextSequenceToken(request.logGroupName, request.logStreamName)).build).toScala
     } catch {
       case e: ResourceNotFoundException if e.getMessage.toLowerCase.contains("log group") =>
         awsClient.createLogGroup(
-          new CreateLogGroupRequest()
-            .withLogGroupName(request.getLogGroupName)
+          CreateLogGroupRequest.builder()
+            .logGroupName(request.logGroupName)
+            .build
         )
         putLogEvents(request)
       case e: ResourceNotFoundException if e.getMessage.toLowerCase.contains("log stream") =>
         awsClient.createLogStream(
-          new CreateLogStreamRequest()
-            .withLogGroupName(request.getLogGroupName)
-            .withLogStreamName(request.getLogStreamName)
-        )
+          CreateLogStreamRequest.builder
+            .logGroupName(request.logGroupName)
+            .logStreamName(request.logStreamName)
+            .build
+        ).toScala
         putLogEvents(request)
-      case e: InvalidSequenceTokenException => awsClient.putLogEvents(request.withSequenceToken(e.getExpectedSequenceToken))
+      case e: InvalidSequenceTokenException => awsClient.putLogEvents(request.toBuilder.sequenceToken(e.expectedSequenceToken).build).toScala
+    }).andThen {
+      case Success(awsResponse) => nstp.setNextSequenceToken(request.logGroupName, request.logStreamName, awsResponse.nextSequenceToken)
     }
-    nstp.setNextSequenceToken(request.getLogGroupName, request.getLogStreamName, response.getNextSequenceToken)
     response
   }
 }
