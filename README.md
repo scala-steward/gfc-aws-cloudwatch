@@ -86,6 +86,6 @@ CloudWatchLogsClient("TopLevelNamespace").
 ```
 
 ## License
-Copyright 2018 Hudson's Bay Company
+Copyright 2019 Hudson's Bay Company
 
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
