@@ -45,13 +45,13 @@ publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-licenses := Seq("Apache-style" -> url("https://raw.githubusercontent.com/gilt/gfc-aws-cloudwatch/master/LICENSE"))
+licenses := Seq("Apache-style" -> url("https://raw.githubusercontent.com/saksdirect/gfc-aws-cloudwatch/master/LICENSE"))
 
-homepage := Some(url("https://github.com/gilt/gfc-aws-cloudwatch"))
+homepage := Some(url("https://github.com/saksdirect/gfc-aws-cloudwatch"))
 
 pomExtra := <scm>
-  <url>https://github.com/gilt/gfc-aws-cloudwatch.git</url>
-  <connection>scm:git:git@github.com:gilt/gfc-aws-cloudwatch.git</connection>
+  <url>https://github.com/saksdirect/gfc-aws-cloudwatch.git</url>
+  <connection>scm:git:git@github.com:saksdirect/gfc-aws-cloudwatch.git</connection>
 </scm>
 <developers>
   <developer>
@@ -65,4 +65,3 @@ pomExtra := <scm>
     <url>https://github.com/andreyk0</url>
   </developer>
 </developers>
-
