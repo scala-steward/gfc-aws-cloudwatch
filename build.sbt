@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
 , "com.gilt" %% "gfc-concurrent" % "0.3.8"
 , "software.amazon.awssdk" % "cloudwatch" % awsLibVersion
 , "software.amazon.awssdk" % "cloudwatchlogs" % awsLibVersion
-, "org.specs2" %% "specs2-scalacheck" % "4.7.0" % Test
+, "org.specs2" %% "specs2-scalacheck" % "4.7.1" % Test
 )
 
 releaseCrossBuild := true
