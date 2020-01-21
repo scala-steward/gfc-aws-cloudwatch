@@ -1,7 +1,7 @@
-package com.gilt.gfc.aws.cloudwatch.periodic.metric
+package org.gfccollective.aws.cloudwatch.periodic.metric
 
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum
-import com.gilt.gfc.aws.cloudwatch.ToCloudWatchMetricsData
+import org.gfccollective.aws.cloudwatch.ToCloudWatchMetricsData
 
 
 package object aggregator {

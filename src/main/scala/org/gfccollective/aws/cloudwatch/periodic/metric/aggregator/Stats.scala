@@ -1,9 +1,9 @@
-package com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator
+package org.gfccollective.aws.cloudwatch.periodic.metric.aggregator
 
 import java.time.Instant
 
 import software.amazon.awssdk.services.cloudwatch.model._
-import com.gilt.gfc.aws.cloudwatch.ToCloudWatchMetricsData
+import org.gfccollective.aws.cloudwatch.ToCloudWatchMetricsData
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps

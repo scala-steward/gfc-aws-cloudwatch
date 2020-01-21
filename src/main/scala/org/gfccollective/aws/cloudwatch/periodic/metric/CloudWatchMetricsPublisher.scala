@@ -1,4 +1,4 @@
-package com.gilt.gfc.aws.cloudwatch.periodic.metric
+package org.gfccollective.aws.cloudwatch.periodic.metric
 
 import java.util.concurrent.{ScheduledFuture, TimeUnit}
 
@@ -7,11 +7,11 @@ import scala.language.postfixOps
 import scala.util.control.NonFatal
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
 
-import com.gilt.gfc.aws.cloudwatch.{CloudWatchMetricsClient, ToCloudWatchMetricsData}
-import com.gilt.gfc.aws.cloudwatch.periodic.metric.aggregator.Stats
-import com.gilt.gfc.concurrent.JavaConverters._
-import com.gilt.gfc.concurrent.{AsyncScheduledExecutorService, ThreadFactoryBuilder}
-import com.gilt.gfc.logging.Loggable
+import org.gfccollective.aws.cloudwatch.{CloudWatchMetricsClient, ToCloudWatchMetricsData}
+import org.gfccollective.aws.cloudwatch.periodic.metric.aggregator.Stats
+import org.gfccollective.concurrent.JavaConverters._
+import org.gfccollective.concurrent.{AsyncScheduledExecutorService, ThreadFactoryBuilder}
+import org.gfccollective.logging.Loggable
 
 import scala.util.Try
 

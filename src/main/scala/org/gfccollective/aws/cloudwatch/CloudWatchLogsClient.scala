@@ -1,13 +1,13 @@
-package com.gilt.gfc.aws.cloudwatch
+package org.gfccollective.aws.cloudwatch
 
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsAsyncClient
 import software.amazon.awssdk.services.cloudwatchlogs.model._
 
 import scala.concurrent.ExecutionContext
 import scala.util.Success
-import com.gilt.gfc.concurrent.JavaConverters._
-import com.gilt.gfc.concurrent.SameThreadExecutionContext
-import com.gilt.gfc.logging.OpenLoggable
+import org.gfccollective.concurrent.JavaConverters._
+import org.gfccollective.concurrent.SameThreadExecutionContext
+import org.gfccollective.logging.OpenLoggable
 import scala.compat.java8.FutureConverters._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future

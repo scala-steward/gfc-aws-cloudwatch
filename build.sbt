@@ -2,7 +2,7 @@ import scoverage.ScoverageKeys
 
 name := "gfc-aws-cloudwatch"
 
-organization := "com.gilt"
+organization := "org.gfccollective"
 
 scalaVersion := "2.12.10"
 
@@ -20,11 +20,11 @@ ScoverageKeys.coverageMinimum := 15.0
 
 libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
-  "com.gilt" %% "gfc-logging" % "0.0.8"
-, "com.gilt" %% "gfc-concurrent" % "0.3.8"
-, "software.amazon.awssdk" % "cloudwatch" % awsLibVersion
-, "software.amazon.awssdk" % "cloudwatchlogs" % awsLibVersion
-, "org.specs2" %% "specs2-scalacheck" % "4.8.3" % Test
+  "org.gfccollective" %% "gfc-logging" % "1.0.0",
+  "org.gfccollective" %% "gfc-concurrent" % "1.0.0",
+  "software.amazon.awssdk" % "cloudwatch" % awsLibVersion,
+  "software.amazon.awssdk" % "cloudwatchlogs" % awsLibVersion,
+  "org.specs2" %% "specs2-scalacheck" % "4.8.3" % Test,
 )
 
 releaseCrossBuild := true
