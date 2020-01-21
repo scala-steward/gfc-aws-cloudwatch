@@ -8,6 +8,7 @@ import org.gfccollective.logging.OpenLoggable
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 import scala.util.control.NonFatal
 
 
@@ -104,9 +105,11 @@ trait CloudWatchMetricsClient {
 
     implicit val ec = SameThreadExecutionContext // putMetricData should be lightweight
 
-    safeFuture onFailure {
-      case NonFatal(e) =>
+    safeFuture.onComplete {
+      case Success(NonFatal(e)) =>
         this.putMetricData(t2a(e))
+      case _ =>
+        ()
     }
 
     safeFuture

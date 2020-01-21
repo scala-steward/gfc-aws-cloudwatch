@@ -127,9 +127,11 @@ trait CloudWatchLogsClient {
 
     implicit val ec = SameThreadExecutionContext // putLogData should be lightweight
 
-    safeFuture onFailure {
-      case NonFatal(e) =>
+    safeFuture.onComplete {
+      case Success(NonFatal(e)) =>
         this.putLogData(logName, t2a(e))
+      case _ =>
+        ()
     }
 
     safeFuture
