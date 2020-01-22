@@ -6,12 +6,14 @@ A fork and new home of the former Gilt Foundation Classes (`com.gilt.gfc`), now 
 
 ## Getting gfc-aws-cloudwatch
 
-The latest version is 1.4.0, which is cross-built against Scala 2.12.x and 2.13.x
+The latest version of gfc-aws-cloudwatch using the AWS 1.x libraries is 1.4.1 (maintained on the `1.x` branch), 
+The latest version of gfc-aws-cloudwatch using the AWS 2.x libraries is 2.0.0 (maintained on the `master` branch).
+Both versions are cross-compiled against Scala 2.12.x and 2.13.x.
 
 If you're using SBT, add the following line to your build file:
 
 ```scala
-libraryDependencies += "org.gfccollective" %% "gfc-aws-cloudwatch" % "1.4.0"
+libraryDependencies += "org.gfccollective" %% "gfc-aws-cloudwatch" % "2.0.0"
 ```
 
 For Maven and other build tools, you can visit [search.maven.org](http://search.maven.org/#search%7Cga%7C1%7Corg.gfccollective).
@@ -92,6 +94,5 @@ CloudWatchLogsClient("TopLevelNamespace").
 ```
 
 ## License
-Copyright 2019 Hudson's Bay Company
 
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
