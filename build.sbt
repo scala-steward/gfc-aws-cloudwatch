@@ -6,7 +6,7 @@ organization := "org.gfccollective"
 
 scalaVersion := "2.13.2"
 
-crossScalaVersions := Seq(scalaVersion.value, "2.12.10")
+crossScalaVersions := Seq(scalaVersion.value, "2.12.11")
 
 val awsLibVersion = "2.13.13"
 
