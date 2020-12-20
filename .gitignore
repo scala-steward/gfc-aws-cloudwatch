@@ -1,5 +1,8 @@
-/project/project/
-/project/target/
-/target/
-/test-output/
-/.idea/
+project/project/
+project/target/
+target/
+test-output/
+.idea/
+.bsp/
+*.class
+out
