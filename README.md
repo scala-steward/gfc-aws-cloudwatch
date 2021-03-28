@@ -1,4 +1,4 @@
-# gfc-aws-cloudwatch [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.gfccollective/gfc-aws-cloudwatch_2.12/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/org.gfccollective/gfc-aws-cloudwatch_2.12) [![Build Status](https://github.com/gfc-collective/gfc-aws-cloudwatch/workflows/Scala%20CI/badge.svg)](https://github.com/gfc-collective/gfc-aws-cloudwatch/actions) [![Coverage Status](https://coveralls.io/repos/gfc-collective/gfc-aws-cloudwatch/badge.svg?branch=master&service=github)](https://coveralls.io/github/gfc-collective/gfc-aws-cloudwatch?branch=master)
+# gfc-aws-cloudwatch [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.gfccollective/gfc-aws-cloudwatch_2.12/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/org.gfccollective/gfc-aws-cloudwatch_2.12) [![Build Status](https://github.com/gfc-collective/gfc-aws-cloudwatch/workflows/Scala%20CI/badge.svg)](https://github.com/gfc-collective/gfc-aws-cloudwatch/actions) [![Coverage Status](https://coveralls.io/repos/gfc-collective/gfc-aws-cloudwatch/badge.svg?branch=main&service=github)](https://coveralls.io/github/gfc-collective/gfc-aws-cloudwatch?branch=main)
 
 A thin Scala wrapper around AWS CloudWatch Java client.
 A fork and new home of the now unmaintained Gilt Foundation Classes (`com.gilt.gfc`), now called the [GFC Collective](https://github.com/gfc-collective), maintained by some of the original authors.
@@ -7,7 +7,7 @@ A fork and new home of the now unmaintained Gilt Foundation Classes (`com.gilt.g
 ## Getting gfc-aws-cloudwatch
 
 The latest version of gfc-aws-cloudwatch using the AWS 1.x libraries is 1.4.1 (maintained on the `1.x` branch), 
-The latest version of gfc-aws-cloudwatch using the AWS 2.x libraries is 2.0.0 (maintained on the `master` branch).
+The latest version of gfc-aws-cloudwatch using the AWS 2.x libraries is 2.0.0 (maintained on the `main` branch).
 Both versions are cross-compiled against Scala 2.12.x and 2.13.x and were released on 21/Jan/2020.
 
 If you're using SBT, add the following line to your build file:
